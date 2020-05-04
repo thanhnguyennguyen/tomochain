@@ -83,20 +83,33 @@ func CreateTransactionSign(chainConfig *params.ChainConfig, pool *core.TxPool, m
 			}
 		}
 
-		// Create and send tx to smart contract for sign validate block.
 		nonce := pool.State().GetNonce(account.Address)
-		tx := CreateTxSign(block.Number(), block.Hash(), nonce, common.HexToAddress(common.BlockSigners))
-		txSigned, err := wallet.SignTx(account, tx, chainConfig.ChainId)
-		if err != nil {
-			log.Error("Fail to create tx sign", "error", err)
-			return err
+
+		retry := 0
+		for retry < 3 {
+			// Create and send tx to smart contract for sign validate block.
+			tx := CreateTxSign(block.Number(), block.Hash(), nonce, common.HexToAddress(common.BlockSigners))
+			txSigned, err := wallet.SignTx(account, tx, chainConfig.ChainId)
+			if err != nil {
+				log.Error("Fail to create tx sign", "error", err)
+				return err
+			}
+			// Add tx signed to local tx pool.
+			err = pool.AddLocal(txSigned)
+			if err == core.ErrNonceTooLow {
+				retry++
+				nonce++
+				continue
+			}
+			if err != nil {
+				log.Error("Fail to add tx sign to local pool.", "error", err, "number", block.NumberU64(), "hash", block.Hash().Hex(), "from", account.Address, "nonce", nonce)
+				return err
+			} else {
+				break
+			}
+
 		}
-		// Add tx signed to local tx pool.
-		err = pool.AddLocal(txSigned)
-		if err != nil {
-			log.Error("Fail to add tx sign to local pool.", "error", err, "number", block.NumberU64(), "hash", block.Hash().Hex(), "from", account.Address, "nonce", nonce)
-			return err
-		}
+
 
 		// Create secret tx.
 		blockNumber := block.Number().Uint64()
@@ -110,22 +123,34 @@ func CreateTransactionSign(chainConfig *params.ChainConfig, pool *core.TxPool, m
 			// Only process when private key empty in state db.
 			// Save randomize key into state db.
 			randomizeKeyValue := RandStringByte(32)
-			tx, err := BuildTxSecretRandomize(nonce+1, common.HexToAddress(common.RandomizeSMC), chainConfig.Posv.Epoch, randomizeKeyValue)
-			if err != nil {
-				log.Error("Fail to get tx opening for randomize", "error", err)
-				return err
+			nonce = nonce+1
+			retry := 0
+			for retry < 3 {
+				tx, err := BuildTxSecretRandomize(nonce, common.HexToAddress(common.RandomizeSMC), chainConfig.Posv.Epoch, randomizeKeyValue)
+				if err != nil {
+					log.Error("Fail to get tx opening for randomize", "error", err)
+					return err
+				}
+				txSigned, err := wallet.SignTx(account, tx, chainConfig.ChainId)
+				if err != nil {
+					log.Error("Fail to create tx secret", "error", err)
+					return err
+				}
+				// Add tx signed to local tx pool.
+				err = pool.AddLocal(txSigned)
+				if err == core.ErrNonceTooLow {
+					retry++
+					nonce++
+					continue
+				}
+				if err != nil {
+					log.Error("Fail to add tx secret to local pool.", "error", err, "number", block.NumberU64(), "hash", block.Hash().Hex(), "from", account.Address, "nonce", nonce)
+					return err
+				} else {
+					break
+				}
 			}
-			txSigned, err := wallet.SignTx(account, tx, chainConfig.ChainId)
-			if err != nil {
-				log.Error("Fail to create tx secret", "error", err)
-				return err
-			}
-			// Add tx signed to local tx pool.
-			err = pool.AddLocal(txSigned)
-			if err != nil {
-				log.Error("Fail to add tx secret to local pool.", "error", err, "number", block.NumberU64(), "hash", block.Hash().Hex(), "from", account.Address, "nonce", nonce)
-				return err
-			}
+
 
 			// Put randomize key into chainDb.
 			chainDb.Put(randomizeKeyName, randomizeKeyValue)
@@ -138,23 +163,34 @@ func CreateTransactionSign(chainConfig *params.ChainConfig, pool *core.TxPool, m
 				log.Error("Fail to get randomize key from state db.", "error", err)
 				return err
 			}
+			nonce = nonce+1
+			retry := 0
+			for retry < 3 {
+				tx, err := BuildTxOpeningRandomize(nonce, common.HexToAddress(common.RandomizeSMC), randomizeKeyValue)
+				if err != nil {
+					log.Error("Fail to get tx opening for randomize", "error", err)
+					return err
+				}
+				txSigned, err := wallet.SignTx(account, tx, chainConfig.ChainId)
+				if err != nil {
+					log.Error("Fail to create tx opening", "error", err)
+					return err
+				}
+				// Add tx to pool.
+				err = pool.AddLocal(txSigned)
+				if err == core.ErrNonceTooLow {
+					retry++
+					nonce++
+					continue
+				}
+				if err != nil {
+					log.Error("Fail to add tx opening to local pool.", "error", err, "number", block.NumberU64(), "hash", block.Hash().Hex(), "from", account.Address, "nonce", nonce)
+					return err
+				} else {
+					break
+				}
+			}
 
-			tx, err := BuildTxOpeningRandomize(nonce+1, common.HexToAddress(common.RandomizeSMC), randomizeKeyValue)
-			if err != nil {
-				log.Error("Fail to get tx opening for randomize", "error", err)
-				return err
-			}
-			txSigned, err := wallet.SignTx(account, tx, chainConfig.ChainId)
-			if err != nil {
-				log.Error("Fail to create tx opening", "error", err)
-				return err
-			}
-			// Add tx to pool.
-			err = pool.AddLocal(txSigned)
-			if err != nil {
-				log.Error("Fail to add tx opening to local pool.", "error", err, "number", block.NumberU64(), "hash", block.Hash().Hex(), "from", account.Address, "nonce", nonce)
-				return err
-			}
 
 			// Clear randomize key in state db.
 			chainDb.Delete(randomizeKeyName)

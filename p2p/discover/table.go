@@ -51,7 +51,7 @@ const (
 	bucketMinDistance = hashBits - nBuckets // Log distance of closest bucket
 
 	// IP address limits.
-	bucketIPLimit, bucketSubnet = 2, 24 // at most 2 addresses from the same /24
+	bucketIPLimit, bucketSubnet = 20, 24 // at most 2 addresses from the same /24
 	tableIPLimit, tableSubnet   = 10, 24
 
 	maxBondingPingPongs = 16 // Limit on the number of concurrent ping/pong interactions

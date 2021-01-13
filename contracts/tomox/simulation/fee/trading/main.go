@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/tomochain/tomochain/contracts/tomox/simulation"
 	"math/big"
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/tomochain/tomochain/accounts/abi/bind"
@@ -22,10 +20,10 @@ func main() {
 		fmt.Println(err, client)
 	}
 
-	MainKey, _ := crypto.HexToECDSA(os.Getenv("OWNER_KEY"))
+	MainKey, _ := crypto.HexToECDSA("8a1f9a8f95be41cd7ccb6168179afb4504aefe388d1e14474d32c45c72ce7b7a")
 	MainAddr := crypto.PubkeyToAddress(MainKey.PublicKey)
-	coinbase := common.HexToAddress(os.Getenv("RELAYER_COINBASE"))
-	fee, _ := strconv.Atoi(os.Getenv("FEE"))
+	coinbase := common.HexToAddress("0x0D3ab14BBaD3D99F4203bd7a11aCB94882050E7e")
+	//fee, _ := strconv.Atoi(os.Getenv("FEE"))
 
 	nonce, _ := client.NonceAt(context.Background(), MainAddr, nil)
 	auth := bind.NewKeyedTransactor(MainKey)
@@ -37,7 +35,7 @@ func main() {
 
 	registrationContract, _ := tomox.NewRelayerRegistration(auth, common.HexToAddress("0x0342d186212b04E69eA682b3bed8e232b6b3361a"), client)
 
-	tx, err := registrationContract.UpdateFee(coinbase, uint16(fee))
+	tx, err := registrationContract.Resign(coinbase)
 	if err != nil {
 		fmt.Println("UpdateFee: failed!", err)
 	}

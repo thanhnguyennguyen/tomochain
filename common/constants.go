@@ -11,9 +11,9 @@ const (
 	HexSignMethod              = "e341eaa4"
 	HexSetSecret               = "34d38600"
 	HexSetOpening              = "e11f5ba2"
-	EpocBlockSecret            = 800
-	EpocBlockOpening           = 850
-	EpocBlockRandomize         = 900
+	EpocBlockSecret            = 80
+	EpocBlockOpening           = 85
+	EpocBlockRandomize         = 90
 	MaxMasternodes             = 150
 	LimitPenaltyEpoch          = 4
 	BlocksPerYear              = uint64(15768000)
@@ -24,20 +24,20 @@ const (
 	MinimunMinerBlockPerEpoch  = 1
 	IgnoreSignerCheckBlock     = uint64(14458500)
 	OneYear                    = uint64(365 * 86400)
-	LiquidateLendingTradeBlock = uint64(100)
+	LiquidateLendingTradeBlock = uint64(50)
 )
 
 var Rewound = uint64(0)
 
 // hardforks
-var TIP2019Block = big.NewInt(1050000)
-var TIPSigning = big.NewInt(3000000)
-var TIPRandomize = big.NewInt(3464000)
-var BlackListHFNumber = uint64(9349100)
-var TIPTomoX = big.NewInt(20581700)
+var TIP2019Block = big.NewInt(0)
+var TIPSigning = big.NewInt(0)
+var TIPRandomize = big.NewInt(0)
+var BlackListHFNumber = uint64(0)
+var TIPTomoXTestnet = big.NewInt(11303000)
+var TIPTomoX = big.NewInt(0)
 var TIPTomoXLending = big.NewInt(21430200)
 var TIPTomoXCancellationFee = big.NewInt(30915660)
-var TIPTomoXTestnet = big.NewInt(0)
 var IsTestnet bool = false
 var StoreRewardFolder string
 var RollbackHash Hash
@@ -52,14 +52,14 @@ var RelayerLendingCancelFee = big.NewInt(1000000000000000)              // 0.001
 var BaseLendingInterest = big.NewInt(100000000)                         // 1e8
 
 var MinGasPrice = big.NewInt(DefaultMinGasPrice)
-var RelayerRegistrationSMC = "0x16c63b79f9C8784168103C0b74E6A59EC2de4a02"
-var RelayerRegistrationSMCTestnet = "0xA1996F69f47ba14Cb7f661010A7C31974277958c"
-var LendingRegistrationSMC = "0x7d761afd7ff65a79e4173897594a194e3c506e57"
-var LendingRegistrationSMCTestnet = "0x28d7fC2Cf5c18203aaCD7459EFC6Af0643C97bE8"
-var TRC21IssuerSMCTestNet = HexToAddress("0x0E2C88753131CE01c7551B726b28BFD04e44003F")
-var TRC21IssuerSMC = HexToAddress("0x8c0faeb5C6bEd2129b8674F262Fd45c4e9468bee")
-var TomoXListingSMC = HexToAddress("0xDE34dD0f536170993E8CFF639DdFfCF1A85D3E53")
-var TomoXListingSMCTestNet = HexToAddress("0x14B2Bf043b9c31827A472CE4F94294fE9a6277e0")
+var RelayerRegistrationSMC = "0x0342d186212b04E69eA682b3bed8e232b6b3361a"
+var RelayerRegistrationSMCTestnet = "0xe7c16037992bEcAFaeeE779Dacaf8991637953F3"
+var LendingRegistrationSMC = "0x4d7eA2cE949216D6b120f3AA10164173615A2b6C"
+var LendingRegistrationSMCTestnet = "0x4d7eA2cE949216D6b120f3AA10164173615A2b6C"
+var TRC21IssuerSMCTestNet = HexToAddress("0x7081C72c9DC44686C7B7EAB1d338EA137Fa9f0D3")
+var TRC21IssuerSMC = HexToAddress("0xb8648De65C9e17a3EDF0Af82Dc2F410451D46EE2")
+var TomoXListingSMC = HexToAddress("0x80430A33EaB86890a346bCf64F86CFeAC73287f3")
+var TomoXListingSMCTestNet = HexToAddress("0x80430A33EaB86890a346bCf64F86CFeAC73287f3")
 var TRC21GasPriceBefore = big.NewInt(2500)
 var TRC21GasPrice = big.NewInt(250000000)
 var RateTopUp = big.NewInt(90) // 90%
@@ -128,5 +128,5 @@ var Blacklist = map[Address]bool{
 	HexToAddress("0xe187cf86c2274b1f16e8225a7da9a75aba4f1f5f"): true,
 	HexToAddress("0x0000000000000000000000000000000000000011"): true,
 }
-var TIPTRC21Fee = big.NewInt(13523400)
+var TIPTRC21Fee = big.NewInt(0)
 var LimitTimeFinality = uint64(30) // limit in 30 block

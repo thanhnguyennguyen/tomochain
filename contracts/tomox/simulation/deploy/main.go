@@ -121,6 +121,7 @@ func main() {
 	}
 
 	// USD lending base
+	fmt.Println("add lending base USD")
 	nonce = nonce + 1
 	lendingRelayerRegistration.TransactOpts.Nonce = big.NewInt(int64(nonce))
 	_, err = lendingRelayerRegistration.AddBaseToken(tokenList[9]["address"].(common.Address))
@@ -129,6 +130,7 @@ func main() {
 	}
 
 	// TOMO lending base
+	fmt.Println("add lending base TOMO")
 	nonce = nonce + 1
 	lendingRelayerRegistration.TransactOpts.Nonce = big.NewInt(int64(nonce))
 	_, err = lendingRelayerRegistration.AddBaseToken(simulation.TOMONative)
@@ -137,6 +139,7 @@ func main() {
 	}
 
 	// BTC lending base
+	fmt.Println("add lending base BTC")
 	nonce = nonce + 1
 	lendingRelayerRegistration.TransactOpts.Nonce = big.NewInt(int64(nonce))
 	_, err = lendingRelayerRegistration.AddBaseToken(tokenList[0]["address"].(common.Address))
@@ -160,6 +163,8 @@ func main() {
 
 	currentNonce = nonce + 1
 	airdrop(auth, client, tokenList, simulation.TeamAddresses, currentNonce)
+
+	time.Sleep(2 * time.Second)
 
 	// relayer registration
 	ownerRelayer := bind.NewKeyedTransactor(simulation.OwnerRelayerKey)
@@ -230,6 +235,8 @@ func main() {
 	// ETH/USDT
 	fromTokens = append(fromTokens, tokenList[1]["address"].(common.Address))
 	toTokens = append(toTokens, tokenList[9]["address"].(common.Address))
+
+	time.Sleep(2 * time.Second)
 
 	_, err = relayerRegistration.Register(simulation.RelayerCoinbaseAddr, simulation.TradeFee, fromTokens, toTokens)
 	if err != nil {

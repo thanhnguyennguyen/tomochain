@@ -10,7 +10,7 @@ import (
 
 var (
 	BaseTOMO    = big.NewInt(0).Mul(big.NewInt(10), big.NewInt(100000000000000000)) // 1 TOMO
-	RpcEndpoint = "http://127.0.0.1:8501/"
+	RpcEndpoint = "http://127.0.0.1:1545/"
 	MainKey, _  = crypto.HexToECDSA(os.Getenv("MAIN_ADDRESS_KEY"))
 	MainAddr    = crypto.PubkeyToAddress(MainKey.PublicKey) //0x17F2beD710ba50Ed27aEa52fc4bD7Bda5ED4a037
 
@@ -43,7 +43,7 @@ var (
 	TeamAddresses = []common.Address{
 		common.HexToAddress("0x8fB1047e874d2e472cd08980FF8383053dd83102"), // MM team
 		common.HexToAddress("0x9ca1514E3Dc4059C29a1608AE3a3E3fd35900888"), // MM team
-		common.HexToAddress("0x15e08dE16f534c890828F2a0D935433aF5B3CE0C"), // CTO
+		common.HexToAddress("0xee268f1b5524389885b7593ae95661f279f8d68a"), // CTO
 		common.HexToAddress("0xb68D825655F2fE14C32558cDf950b45beF18D218"), // DEX team
 		common.HexToAddress("0xF7349C253FF7747Df661296E0859c44e974fb52E"), // HaiDV
 		common.HexToAddress("0x9f6b8fDD3733B099A91B6D70CDC7963ebBbd2684"), // Can

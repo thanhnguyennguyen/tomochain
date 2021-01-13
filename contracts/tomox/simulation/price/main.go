@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/tomochain/tomochain/core/state"
 	"github.com/tomochain/tomochain/tomoxlending/lendingstate"
+	"github.com/tomochain/tomochain/contracts/tomox/simulation"
 	"math/big"
 	"os"
 	"time"
@@ -17,11 +18,11 @@ import (
 )
 
 func main() {
-	client, err := ethclient.Dial("http://127.0.0.1:8501/")
+	client, err := ethclient.Dial(simulation.RpcEndpoint)
 	if err != nil {
 		fmt.Println(err, client)
 	}
-	MainKey, _ := crypto.HexToECDSA(os.Getenv("OWNER_KEY"))
+	MainKey, _ := crypto.HexToECDSA(os.Getenv("MAIN_ADDRESS_KEY"))
 	MainAddr := crypto.PubkeyToAddress(MainKey.PublicKey)
 
 	nonce, _ := client.NonceAt(context.Background(), MainAddr, nil)
@@ -34,9 +35,9 @@ func main() {
 	auth.Nonce = big.NewInt(int64(nonce))
 
 	price := new(big.Int)
-	price.SetString(os.Getenv("PRICE"), 10)
+	price.SetString("90000000000000000000000", 10)
 
-	lendContract, _ := tomox.NewLendingRelayerRegistration(auth, common.HexToAddress(os.Getenv("LENDING_ADDRESS")), client)
+	lendContract, _ := tomox.NewLendingRelayerRegistration(auth, common.HexToAddress("0x4d7eA2cE949216D6b120f3AA10164173615A2b6C"), client)
 
 	token := common.HexToAddress(os.Getenv("TOKEN_ADDRESS"))
 	lendingToken := common.HexToAddress(os.Getenv("LENDING_TOKEN_ADDRESS"))

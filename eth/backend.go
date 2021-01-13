@@ -543,6 +543,7 @@ func New(ctx *node.ServiceContext, config *Config, tomoXServ *tomox.TomoX, lendi
 						if len(rewards) > 0 {
 							for holder, reward := range rewards {
 								stateBlock.AddBalance(holder, reward)
+								log.Error("AddReward", "holder", holder.String(), "amount" , reward)
 							}
 						}
 						voterResults[signer] = rewards

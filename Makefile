@@ -1,3 +1,4 @@
+export GO111MODULE=on
 .PHONY: tomo tomo-cross evm all test clean
 .PHONY: tomo-linux tomo-linux-386 tomo-linux-amd64 tomo-linux-mips64 tomo-linux-mips64le
 .PHONY: tomo-darwin tomo-darwin-386 tomo-darwin-amd64

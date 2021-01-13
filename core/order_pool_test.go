@@ -51,6 +51,7 @@ var (
 	_1E17      = new(big.Int).Mul(big.NewInt(10000000000000000), big.NewInt(10))
 	_1E8       = big.NewInt(100000000)
 	_1E7       = big.NewInt(10000000)
+	_1E6       = big.NewInt(1000000)
 )
 
 func getNonce(t *testing.T, userAddress common.Address) (uint64, error) {
@@ -75,7 +76,7 @@ func getNonce(t *testing.T, userAddress common.Address) (uint64, error) {
 }
 func testSendOrder(t *testing.T, amount, price *big.Int, side string, status string, orderID uint64) {
 
-	client, err := ethclient.Dial("http://127.0.0.1:8501")
+	client, err := ethclient.Dial("http://127.0.0.1:1545")
 	if err != nil {
 		log.Print(err)
 	}
@@ -145,7 +146,7 @@ func testSendOrderTOMOUSD(t *testing.T, amount, price *big.Int, side string, sta
 
 func testSendOrderBTCUSD(t *testing.T, amount, price *big.Int, side string, status string, orderID uint64) {
 
-	client, err := ethclient.Dial("http://127.0.0.1:8501")
+	client, err := ethclient.Dial("http://127.0.0.1:1545")
 	if err != nil {
 		log.Print(err)
 	}

@@ -44,7 +44,7 @@ type LendingMsg struct {
 }
 
 func getLendingNonce(userAddress common.Address) (uint64, error) {
-	rpcClient, err := rpc.DialHTTP("http://127.0.0.1:8501")
+	rpcClient, err := rpc.DialHTTP("http://127.0.0.1:1545")
 	defer rpcClient.Close()
 	if err != nil {
 		return 0, err
@@ -121,7 +121,7 @@ func (l *LendingMsg) computeHash() common.Hash {
 }
 func testSendLending(key string, nonce uint64, lendToken, collateralToken common.Address, amount *big.Int, interest uint64, side string, status string, autoTopUp bool, lendingId, tradeId uint64, cancelledHash common.Hash, extraData string) {
 
-	client, err := ethclient.Dial("http://127.0.0.1:8501")
+	client, err := ethclient.Dial("http://127.0.0.1:1545")
 	if err != nil {
 		log.Print(err)
 	}
@@ -159,7 +159,38 @@ func testSendLending(key string, nonce uint64, lendToken, collateralToken common
 	if err != nil {
 		log.Print(err)
 	}
-	fmt.Println("nonce", nonce, "side", msg.Side, "quantity", new(big.Int).Div(msg.Quantity, _1E8), "Interest", new(big.Int).Div(new(big.Int).SetUint64(msg.Interest), _1E8), "%")
+	lendTokenDecimal := _1E18
+	lendTokenName := ""
+	switch lendToken {
+	case USDAddress:
+		lendTokenDecimal = _1E6
+		lendTokenName = "USDT"
+		break
+	case common.HexToAddress(common.TomoNativeAddress):
+		lendTokenDecimal = _1E18
+		lendTokenName = "TOMO"
+		break
+	case BTCAddress:
+		lendTokenDecimal = _1E8
+		lendTokenName = "BTC"
+		break
+	}
+	collateralName := ""
+	switch collateralToken {
+	case USDAddress:
+		collateralName = "USDT"
+		break
+	case common.HexToAddress(common.TomoNativeAddress):
+		collateralName = "TOMO"
+		break
+	case BTCAddress:
+		collateralName = "BTC"
+		break
+	case ETHAddress:
+		collateralName = "ETH"
+		break
+	}
+	fmt.Println("nonce", nonce, "side", msg.Side, "LendToken", lendTokenName,  "quantity", new(big.Int).Div(msg.Quantity, lendTokenDecimal),  "Interest", new(big.Int).Div(new(big.Int).SetUint64(msg.Interest), _1E8), "%", "term", msg.Term, "Collateral", collateralName)
 
 	err = client.SendLendingTransaction(context.Background(), signedTx)
 	if err != nil {
@@ -168,8 +199,8 @@ func testSendLending(key string, nonce uint64, lendToken, collateralToken common
 }
 
 func TestSendLending(t *testing.T) {
-	t.SkipNow() //TODO: remove it to run this test
-	key := ""
+	//t.SkipNow() //TODO: remove it to run this test
+	key := "65ec4d4dfbcac594a14c36baa462d6f73cd86134840f6cf7b80a1e1cd33473e2"
 	privateKey, err := crypto.HexToECDSA(key)
 	if err != nil {
 		log.Print(err)
@@ -180,68 +211,77 @@ func TestSendLending(t *testing.T) {
 		t.FailNow()
 	}
 
-	for true {
+	//for true {
 		// 10%
 		interestRate := 10 * common.BaseLendingInterest.Uint64()
 		// lendToken: USD, collateral: BTC
 		// amount 1000 USD
-		testSendLending(key, nonce, USDAddress, common.Address{}, new(big.Int).Mul(_1E8, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-		testSendLending(key, nonce, USDAddress, BTCAddress, new(big.Int).Mul(_1E8, big.NewInt(1000)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
+		testSendLending(key, nonce, USDAddress, common.Address{}, new(big.Int).Mul(_1E6, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+		//nonce++
+		//time.Sleep(time.Second)
+		//testSendLending(key, nonce, USDAddress, BTCAddress, new(big.Int).Mul(_1E6, big.NewInt(1000)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 1, common.Hash{}, "")
+		//nonce++
+		//time.Sleep(time.Second)
 
-		// lendToken: USD, collateral: TOMO
-		// amount 1000 USD
-		testSendLending(key, nonce, USDAddress, common.Address{}, new(big.Int).Mul(_1E8, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-		testSendLending(key, nonce, USDAddress, common.HexToAddress(common.TomoNativeAddress), new(big.Int).Mul(_1E8, big.NewInt(1000)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-
-		// lendToken: BTC, collateral: TOMO
-		// amount 1 BTC
-		testSendLending(key, nonce, BTCAddress, common.Address{}, new(big.Int).Mul(_1E18, big.NewInt(1)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-		testSendLending(key, nonce, BTCAddress, common.HexToAddress(common.TomoNativeAddress), new(big.Int).Mul(_1E18, big.NewInt(1)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-
-		// lendToken: BTC, collateral: ETH
-		// amount 1 BTC
-		testSendLending(key, nonce, BTCAddress, common.Address{}, new(big.Int).Mul(_1E18, big.NewInt(1)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-		testSendLending(key, nonce, BTCAddress, ETHAddress, new(big.Int).Mul(_1E18, big.NewInt(1)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-
-		// lendToken: TOMO, collateral: BTC
-		// amount 1000 TOMO
-		testSendLending(key, nonce, common.HexToAddress(common.TomoNativeAddress), common.Address{}, new(big.Int).Mul(_1E18, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-		testSendLending(key, nonce, common.HexToAddress(common.TomoNativeAddress), BTCAddress, new(big.Int).Mul(_1E18, big.NewInt(1000)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-
-		// lendToken: TOMO, collateral: ETH
-		// amount 1000 TOMO
-		testSendLending(key, nonce, common.HexToAddress(common.TomoNativeAddress), common.Address{}, new(big.Int).Mul(_1E18, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-		testSendLending(key, nonce, common.HexToAddress(common.TomoNativeAddress), ETHAddress, new(big.Int).Mul(_1E18, big.NewInt(1000)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-		nonce++
-		time.Sleep(time.Second)
-	}
+	//	// lendToken: USD, collateral: ETH
+	//	// amount 1000 USD
+	//	testSendLending(key, nonce, USDAddress, common.Address{}, new(big.Int).Mul(_1E6, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//	testSendLending(key, nonce, USDAddress, ETHAddress, new(big.Int).Mul(_1E6, big.NewInt(1000)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 1, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//
+	//	// lendToken: USD, collateral: TOMO
+	//	// amount 1000 USD
+	//	testSendLending(key, nonce, USDAddress, common.Address{}, new(big.Int).Mul(_1E6, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	//time.Sleep(time.Second)
+	//	testSendLending(key, nonce, USDAddress, common.HexToAddress(common.TomoNativeAddress), new(big.Int).Mul(_1E6, big.NewInt(1000)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//	//
+	//	//// lendToken: BTC, collateral: TOMO
+	//	//// amount 1 BTC
+	//	testSendLending(key, nonce, BTCAddress, common.Address{}, new(big.Int).Mul(_1E8, big.NewInt(1)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//	testSendLending(key, nonce, BTCAddress, common.HexToAddress(common.TomoNativeAddress), new(big.Int).Mul(_1E8, big.NewInt(1)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//	//
+	//	//// lendToken: BTC, collateral: ETH
+	//	//// amount 1 BTC
+	//	testSendLending(key, nonce, BTCAddress, common.Address{}, new(big.Int).Mul(_1E8, big.NewInt(1)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//	testSendLending(key, nonce, BTCAddress, ETHAddress, new(big.Int).Mul(_1E8, big.NewInt(1)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//	//
+	//	//// lendToken: TOMO, collateral: BTC
+	//	//// amount 1000 TOMO
+	//	testSendLending(key, nonce, common.HexToAddress(common.TomoNativeAddress), common.Address{}, new(big.Int).Mul(_1E18, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//	testSendLending(key, nonce, common.HexToAddress(common.TomoNativeAddress), BTCAddress, new(big.Int).Mul(_1E18, big.NewInt(3)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//	//
+	//	//// lendToken: TOMO, collateral: ETH
+	//	// amount 1000 TOMO
+	//	testSendLending(key, nonce, common.HexToAddress(common.TomoNativeAddress), common.Address{}, new(big.Int).Mul(_1E18, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//	testSendLending(key, nonce, common.HexToAddress(common.TomoNativeAddress), ETHAddress, new(big.Int).Mul(_1E18, big.NewInt(2000)), interestRate, lendingstate.Borrowing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//	nonce++
+	//	time.Sleep(time.Second)
+	//}
 }
 
 func TestCancelLending(t *testing.T) {
-	t.SkipNow() //TODO: remove it to run this test
-	key := ""
+	//t.SkipNow() //TODO: remove it to run this test
+	key := "65ec4d4dfbcac594a14c36baa462d6f73cd86134840f6cf7b80a1e1cd33473e2"
 	privateKey, err := crypto.HexToECDSA(key)
 	if err != nil {
 		log.Print(err)
@@ -254,11 +294,11 @@ func TestCancelLending(t *testing.T) {
 
 	// 10%
 	interestRate := 10 * common.BaseLendingInterest.Uint64()
-	testSendLending(key, nonce, USDAddress, common.Address{}, new(big.Int).Mul(_1E8, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
-	nonce++
-	time.Sleep(2 * time.Second)
+	//testSendLending(key, nonce, USDAddress, common.Address{}, new(big.Int).Mul(_1E8, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusNew, true, 0, 0, common.Hash{}, "")
+	//nonce++
+	//time.Sleep(2 * time.Second)
 	//TODO: run the above testcase first, then updating lendingId, Hash
-	testSendLending(key, nonce, USDAddress, common.Address{}, new(big.Int).Mul(_1E8, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusCancelled, true, 1, 0, common.HexToHash("0x3da4e24b9c0f60e04cdb4c4494de37203c6e1a354907cbd6d9bbbe2e52aecaab"), "")
+	testSendLending(key, nonce, USDAddress, common.Address{}, new(big.Int).Mul(_1E8, big.NewInt(1000)), interestRate, lendingstate.Investing, lendingstate.LendingStatusCancelled, true, 1, 0, common.HexToHash("0x1eec8dbe79fb8c942e2cca7b2e204cf3a876081c74e9e0d96c956a6c0992750c"), "")
 
 }
 
